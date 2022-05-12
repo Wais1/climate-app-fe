@@ -85,16 +85,11 @@ const MapScreen = () => {
               color="green" 
               size={30} 
               />
-              <Text style={tw`my-auto`}>{origin?.description}</Text>
+              <Text style={tw`my-auto mr-4`}>{origin?.description.substring(0,40)} ...</Text>
             </View>
           </View>
 
-          
-
- 
-    
-  
-          <TouchableOpacity onPress={()=> handleCancel()} style={tw`bg-red-500 rounded-5x py-3 m-3 mt-4 mb-7 `}>
+          <TouchableOpacity onPress={()=> handleCancel()} style={tw`bg-red-500 rounded-5x py-3 mb-7 `}>
             <Text style={tw`text-center text-white font-semibold text-xl`}>Cancel Delivery</Text>
           </TouchableOpacity>
         </View>

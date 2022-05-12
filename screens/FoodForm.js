@@ -139,7 +139,7 @@ const FoodForm = () => {
               color="green" 
               size={30} 
               />
-              <Text style={tw`my-auto`}>From {origin?.description}</Text>
+              <Text style={tw`my-auto`}>From {origin?.description.substring(0,40)}</Text>
             </View>
         </View>
 

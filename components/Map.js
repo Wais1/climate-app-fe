@@ -79,18 +79,22 @@ const Map = () => {
           focusable
         />
       )}
-      {destination?.location && (
+      {/* {destination?.location && ( */}
+      {/*             latitude: destination.location.lat,
+            longitude: destination.location.lng, */}
+
+            {/* destination.description */}
         <Marker
           coordinate={{
-            latitude: origin.location.lat,
-            longitude: origin.location.lng,
+            latitude: -6.301970,
+            longitude: 106.748510,
           }} 
           title="Destination"
-          description={origin.description}
+          description='Test'
           identifier="destination"
           focusable
         />
-      )}
+      {/* )} */}
       </MapView>
   );
 };

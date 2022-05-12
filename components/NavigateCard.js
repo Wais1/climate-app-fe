@@ -3,8 +3,8 @@ import React, { useEffect, useState } from 'react'
 import tw from 'twrnc'
 import { GooglePlacesAutocomplete } from 'react-native-google-places-autocomplete'
 import { GOOGLE_MAPS_APIKEY } from '@env'
-import { useDispatch } from 'react-redux'
-import { setDestination, setOrigin } from '../slices/navSlice'
+import { useDispatch, useSelector } from 'react-redux'
+import { selectOrigin, setDestination, setOrigin } from '../slices/navSlice'
 import { useNavigation } from '@react-navigation/native'
 import NavFavourites from './NavFavourites'
 import { TouchableOpacity } from 'react-native-gesture-handler'
@@ -14,34 +14,128 @@ import { Avatar } from 'react-native-elements';
 
 const NavigateCard = () => {
     const dispatch = useDispatch();
+    const origin = useSelector(selectOrigin);
     const navigation = useNavigation();
     const [title, setTitle] = useState('Finding your driver...')
     const [subtitle, setSubtitle] = useState('Please wait while we find a driver and a nearby checkpoint')
+    const [destinationDistance, setDestinationDistance] = useState(0)
     const [driverFound, setDriverFound] = useState(false)
+    const [driverArrived, setDriverArrived] = useState(false)
+    const [destinationDetails, setDestinationDetails] = useState({})
 
 
     useEffect(() => {
         // Simulate driver found time as an API call, can remove if API is implemented
-        const nearbyDrier = setTimeout(function() {
+        const nearbyDriver = setTimeout(function() {
           setTitle('A nearby driver was found.')
           setSubtitle('Your driver is on the way...')
           setDriverFound(true)
         }, 6000)
         // Set extra timer for dev
 
-        // Simulate driver arrived
-        const arrivedDriver = setTimeout(function() {
-          navigation.navigate('SuccessScreen')
-        //   set origin to null. crashes
-        //   dispatch(setOrigin(null))
-        }, 13000)
+        // Gets destination distnace
+        getDestinationDetails()
+
+        // Once driver arrived, update info for destination on page (only triggered when API call to server is succesful)
+        if(driverArrived) {
+
+            // Simulate driver arrived
+            var arrivedDriver = setTimeout(function() {
+                setTitle("Driver arrived")
+                setSubtitle(`Driver is on the way to ${destinationDetails["name"]}, it is ${destinationDistance} km away`)
+            }, 13000)
+
+            // Navigates to success screen after x time to simulate success
+            var navigateToSuccess = setTimeout(function() {
+                navigation.navigate('SuccessScreen')
+                //   set origin to null. crashes
+                //   dispatch(setOrigin(null))
+            }, 20000)
+        }
+
         return ( ()=> {
             // On cancel, (when component is exited,) clear the request to navigate after driver arrives
-            clearTimeout(nearbyDrier)
+            clearTimeout(nearbyDriver)
             clearTimeout(arrivedDriver)
+            clearTimeout(navigateToSuccess)
         })
         
-      },[])
+      },[driverArrived])
+
+        // Find the destination with API. Pass in origin details,
+        // update destination details here and set destination in redux store? then, destination can be set into the map screen as well
+        const getDestinationDetails = async () => {
+            console.log('Getting destinationt details')
+            // setRequestRunning(true)
+
+            const data = { 
+                lat: origin.location.lat,
+                lng: origin.location.lng
+             }
+            const ENDPOINT = `http://ec2-54-169-153-22.ap-southeast-1.compute.amazonaws.com/api/v1/backend/beneficiary/nearest/?lat=${origin.location.lat}&lng=${origin.location.lng}` 
+    
+            // GET req to API
+            console.log('Requesting to API')
+            await fetch(ENDPOINT, {
+                method: 'GET',
+                headers: { "Content-Type": "application/json"},
+                // handle when fetch is complete
+            }).then(response => response.json()).then(data => {
+                console.log('Response:')
+                console.log(data)
+
+                const distance = data["beneficiaries"][0]["distance_km"]
+                console.log(distance)
+                setDestinationDistance(distance)
+
+                const oid = data["beneficiaries"][0]["oid"]
+                console.log(oid)
+                console.info('=================')
+
+                // Get more destination details from oid
+                getDestinationFromOID(oid)
+
+            }).catch(err => {
+                // setRequestRunning(false)
+                console.error(err)
+             })
+        }
+
+        const getDestinationFromOID = async (oid) => {
+            console.log('Getting OID details')
+            // Input oid into input for beneficiary
+            const ENDPOINT = `http://ec2-54-169-153-22.ap-southeast-1.compute.amazonaws.com/api/v1/backend/beneficiary/${oid}` 
+
+            // GET req to API
+            await fetch(ENDPOINT, {
+                method: 'GET',
+                headers: { "Content-Type": "application/json"},
+                // handle when fetch is complete
+            }).then(response => response.json()).then(data => {
+                console.log('Response from OID:')
+                console.log(data)
+                console.info('=================')
+                console.info(data["result"]["position"]["lng"])
+                console.info(data["result"]["position"]["lat"])
+
+                setDestinationDetails(data["result"])
+                // Sets driver to be arrived, such that title, and etc updates the inputs
+                setDriverArrived(true)
+
+                // Update destination store to get lat, lng on map
+                dispatch(setDestination({
+                      location: {
+                          "lat": data["result"]["position"]["lat"],
+                          "lng": data["result"]["position"]["lng"]
+                        },
+                      description: data["result"]["name"],
+                  }));
+            }).catch(err => {
+                // setRequestRunning(false)
+                console.error(err)
+                // in error, possibly still continue to show demo
+             })
+        }
 
   return (
     <SafeAreaView style={tw`bg-white flex-1`}>
@@ -62,8 +156,8 @@ const NavigateCard = () => {
 
         {/* Information details */}
         <View style={tw`px-6`}>
-            <Text style={tw`pt-3 text-emerald-700 font-semibold text-xl`}>{title}</Text>
-            <Text style={tw`pt-2 mb-2 text-sm text-gray-600`}>{subtitle}</Text>
+            <Text style={tw`pt-1 text-emerald-700 font-semibold text-xl`}>{title}</Text>
+            <Text style={tw`pt-2 mb-2 text-sm text-gray-600`}>{subtitle} </Text>
         </View>
 
         {/* // Standard Avatar */}
