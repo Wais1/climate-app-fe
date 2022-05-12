@@ -70,11 +70,11 @@ const Map = () => {
       {origin?.location && (
         <Marker
           coordinate={{
-            latitude: origin.location.lat,
-            longitude: origin.location.lng,
+            latitude: origin?.location.lat,
+            longitude: origin?.location.lng,
           }} 
           title="Origin"
-          description={origin.description}
+          description={origin?.description}
           identifier="origin"
           focusable
         />
@@ -83,18 +83,19 @@ const Map = () => {
       {/*             latitude: destination.location.lat,
             longitude: destination.location.lng, */}
 
-            {/* destination.description */}
+            {/*  */}
+      {destination?.location && ( 
         <Marker
           coordinate={{
-            latitude: -6.301970,
-            longitude: 106.748510,
+            latitude: destination?.location.lat,
+            longitude: destination?.location.lng,
           }} 
           title="Destination"
-          description='Test'
+          description= {destination?.description}
           identifier="destination"
           focusable
         />
-      {/* )} */}
+      )}
       </MapView>
   );
 };
