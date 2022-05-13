@@ -42,7 +42,7 @@ const NavigateCard = () => {
             // Simulate driver arrived
             var arrivedDriver = setTimeout(function() {
                 setTitle("Driver arrived")
-                setSubtitle(`Driver is on the way to ${destinationDetails["name"]}, it is ${destinationDistance} km away`)
+                setSubtitle(`Our system recommended a delivery to ${destinationDetails["name"]}, it is ${destinationDistance.toFixed(2)} km away`)
             }, 13000)
 
             // Navigates to success screen after x time to simulate success
@@ -50,7 +50,7 @@ const NavigateCard = () => {
                 navigation.navigate('SuccessScreen')
                 //   set origin to null. crashes
                 //   dispatch(setOrigin(null))
-            }, 20000)
+            }, 23000)
         }
 
         return ( ()=> {
@@ -123,13 +123,18 @@ const NavigateCard = () => {
                 setDriverArrived(true)
 
                 // Update destination store to get lat, lng on map
-                dispatch(setDestination({
-                      location: {
-                          "lat": data["result"]["position"]["lat"],
-                          "lng": data["result"]["position"]["lng"]
+                // Has timeout on setting destination, same as when driver arrives
+                const dispatchDestination = () => {
+                    dispatch(setDestination({
+                        location: {
+                            "lat": data["result"]["position"]["lat"],
+                            "lng": data["result"]["position"]["lng"]
                         },
-                      description: data["result"]["name"],
-                  }));
+                        description: data["result"]["name"],
+                    }));
+                }
+                const myTimeout = setTimeout(dispatchDestination,12000);
+
             }).catch(err => {
                 // setRequestRunning(false)
                 console.error(err)
@@ -149,7 +154,7 @@ const NavigateCard = () => {
             />
             <View style={tw`ml-4`}> 
                 <Text style={tw`text-lg`}>Arif Susanto</Text>
-                <Text>Arriving in approximately 10 minutes</Text>
+                <Text> {driverFound ? "Arrival time: " : "Driver on the way"}</Text>
             </View>
         </View>
          )}
